@@ -27,7 +27,16 @@ mvn clean verify
 
 ## Coming soon... Kinesis Streams
 
-## Coming soon... S3
+## S3
+
+The S3 samples demonstrate how to store and retrieve content in an S3 bucket.
+
+Features:
+* Creation of an S3 bucket
+* Verifying that a bucket exists
+* Writing content to S3
+* Reading content from S3
+* Verifying that an S3 object exists
 
 ## Secrets Manager
 The secrets manager samples demonstrate how to create, read and update secrets.

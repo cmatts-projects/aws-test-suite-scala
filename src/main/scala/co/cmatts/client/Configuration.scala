@@ -1,9 +1,9 @@
 package co.cmatts.client
 
+import java.net.URI
+
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder
 import software.amazon.awssdk.regions.Region
-
-import java.net.URI
 
 object Configuration {
   private val LOCAL_STACK_ENDPOINT = "LOCAL_STACK_ENDPOINT"
