@@ -5,10 +5,7 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables
 
 object LocalStackEnvironment {
 
-  def withLocalStackEnvironment(
-      localStackContainer: LocalStackContainer,
-      execBlock: () => Unit
-  ) {
+  def setupLocalStackEnvironment(localStackContainer: LocalStackContainer) {
     new EnvironmentVariables()
       .set("AWS_ACCESS_KEY_ID", localStackContainer.getAccessKey)
       .set("AWS_SECRET_ACCESS_KEY", localStackContainer.getSecretKey)
@@ -17,9 +14,7 @@ object LocalStackEnvironment {
         localStackContainer.getEndpointOverride(null).toString
       )
       .set("AWS_REGION", localStackContainer.getRegion)
-      .execute(() => {
-        execBlock()
-      })
+      .setup()
   }
 
 }
