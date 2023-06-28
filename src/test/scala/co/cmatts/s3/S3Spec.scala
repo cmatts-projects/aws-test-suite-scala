@@ -27,7 +27,7 @@ class S3Spec extends AnyFunSpec with TestContainerForAll with BeforeAndAfter {
     createBucket(TEST_BUCKET)
   })
 
-  describe("ParameterStore test suite") {
+  describe("S3 test suite") {
     it("should check bucket exist") {
       assert(bucketExists(TEST_BUCKET))
     }

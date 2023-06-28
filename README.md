@@ -23,7 +23,14 @@ mvn clean verify
 # Services
 ## Coming soon... DynamoDB
 
-## Coming soon... Cloudwatch
+## Cloudwatch
+
+The cloudwatch samples demonstrate some basic logging of cloudwatch metrics and extracting statistics.
+
+Features:
+* Bulk logging of metrics
+* Getting average statistics from metrics
+* Localstack test container for Cloudwatch
 
 ## Coming soon... Kinesis Streams
 
