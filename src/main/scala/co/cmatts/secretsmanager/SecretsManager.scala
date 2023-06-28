@@ -19,18 +19,26 @@ object SecretsManager {
   }
 
   def createSecret(secretName: String, secretValue: String): String = {
-    val secretRequest = CreateSecretRequest.builder.name(secretName).secretString(secretValue).build
+    val secretRequest = CreateSecretRequest.builder
+      .name(secretName)
+      .secretString(secretValue)
+      .build
     val result = getSecretsManagerClient.createSecret(secretRequest)
     result.arn
   }
 
   def updateSecret(secretName: String, secretValue: String): Unit = {
-    val secretValueRequest = PutSecretValueRequest.builder.secretId(secretName).secretString(secretValue).build
+    val secretValueRequest = PutSecretValueRequest.builder
+      .secretId(secretName)
+      .secretString(secretValue)
+      .build
     getSecretsManagerClient.putSecretValue(secretValueRequest)
   }
 
   def readSecret(secretName: String): String = {
-    val secretValueRequest = GetSecretValueRequest.builder.secretId(secretName).build
+    val secretValueRequest = GetSecretValueRequest.builder
+      .secretId(secretName)
+      .build
     getSecretsManagerClient.getSecretValue(secretValueRequest).secretString
   }
 

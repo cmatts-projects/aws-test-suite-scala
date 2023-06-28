@@ -19,12 +19,19 @@ object ParameterStore {
   }
 
   def writeParameter(parameterName: String, parameterValue: String, parameterDescription: String): Unit = {
-    val parameterRequest = PutParameterRequest.builder.name(parameterName).value(parameterValue).`type`(ParameterType.STRING).description(parameterDescription).build
+    val parameterRequest = PutParameterRequest.builder
+      .name(parameterName)
+      .value(parameterValue)
+      .`type`(ParameterType.STRING)
+      .description(parameterDescription)
+      .build
     getParameterStoreClient.putParameter(parameterRequest)
   }
 
   def readParameter(parameterName: String): String = {
-    val parameterRequest = GetParameterRequest.builder.name(parameterName).build
+    val parameterRequest = GetParameterRequest.builder
+      .name(parameterName)
+      .build
     getParameterStoreClient.getParameter(parameterRequest).parameter.value
   }
 }

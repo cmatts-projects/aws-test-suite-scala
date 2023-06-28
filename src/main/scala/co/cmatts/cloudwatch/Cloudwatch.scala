@@ -27,7 +27,10 @@ object Cloudwatch {
 
   def createMetric(dimensionName: String, dimensionValue: String, metricName: String,
                    value: Int,timestamp: Instant): MetricDatum = {
-    val dimension: Dimension = Dimension.builder.name(dimensionName).value(dimensionValue).build
+    val dimension: Dimension = Dimension.builder
+      .name(dimensionName)
+      .value(dimensionValue)
+      .build
     MetricDatum.builder
       .metricName(metricName)
       .value(value.toDouble)
@@ -56,6 +59,12 @@ object Cloudwatch {
     val now: LocalDateTime = LocalDateTime.now
     val startTime: Instant = now.minusDays(days).toInstant(UTC)
     val endTime: Instant = now.toInstant(UTC)
+
+    val dimension = Dimension.builder
+      .name(dimensionName)
+      .value(dimensionValue)
+      .build
+
     val request: GetMetricStatisticsRequest = GetMetricStatisticsRequest.builder
       .startTime(startTime)
       .endTime(endTime)
@@ -63,12 +72,7 @@ object Cloudwatch {
       .statistics(Statistic.AVERAGE)
       .namespace(namespace)
       .metricName(metricName)
-      .dimensions(
-        Dimension.builder
-          .name(dimensionName)
-          .value(dimensionValue)
-          .build
-      )
+      .dimensions(dimension)
       .build
 
     val response: GetMetricStatisticsResponse =
