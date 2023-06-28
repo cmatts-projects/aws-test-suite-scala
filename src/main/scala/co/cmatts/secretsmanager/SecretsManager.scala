@@ -5,14 +5,17 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import software.amazon.awssdk.services.secretsmanager.model.{CreateSecretRequest, GetSecretValueRequest, PutSecretValueRequest}
 
 object SecretsManager {
-  private var client: SecretsManagerClient = null
+  private var client: Option[SecretsManagerClient] = None
 
   private def getSecretsManagerClient: SecretsManagerClient = {
-    if (client != null) return client
-    val builder = SecretsManagerClient.builder
-    configureEndPoint(builder)
-    client = builder.build
-    client
+    client match {
+      case Some(client) => client
+      case None =>
+        val builder = SecretsManagerClient.builder
+        configureEndPoint(builder)
+        client = Option(builder.build)
+        client.get
+    }
   }
 
   def createSecret(secretName: String, secretValue: String): String = {

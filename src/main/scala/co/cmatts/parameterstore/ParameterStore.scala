@@ -5,14 +5,17 @@ import software.amazon.awssdk.services.ssm.SsmClient
 import software.amazon.awssdk.services.ssm.model.{GetParameterRequest, ParameterType, PutParameterRequest}
 
 object ParameterStore {
-  private var client: SsmClient = null
+  private var client: Option[SsmClient] = None
 
   private def getParameterStoreClient: SsmClient = {
-    if (client != null) return client
-    val builder = SsmClient.builder
-    configureEndPoint(builder)
-    client = builder.build
-    client
+    client match {
+      case Some(client) => client
+      case None =>
+        val builder = SsmClient.builder
+        configureEndPoint(builder)
+        client = Option(builder.build)
+        client.get
+    }
   }
 
   def writeParameter(parameterName: String, parameterValue: String, parameterDescription: String): Unit = {

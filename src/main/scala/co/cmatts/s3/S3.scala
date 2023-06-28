@@ -9,19 +9,22 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model._
 
 object S3 {
-  private var SC_OK = 200
-  private var client: S3Client = null
+  private val SC_OK = 200
+  private var client: Option[S3Client] = None
 
   def getS3Client: S3Client = {
-    if (client != null) return client
-    val builder = S3Client.builder
-    configureEndPoint(builder)
-    client = builder.build
-    client
+    client match {
+      case Some(client) => client
+      case None =>
+        val builder = S3Client.builder
+        configureEndPoint(builder)
+        client = Option(builder.build)
+        client.get
+    }
   }
 
   def resetS3Client(): Unit = {
-    client = null
+    client = None
   }
 
   def bucketExists(bucket: String): Boolean = {

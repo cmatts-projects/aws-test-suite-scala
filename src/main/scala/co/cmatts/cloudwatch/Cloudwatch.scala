@@ -12,14 +12,17 @@ import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
 
 object Cloudwatch {
-  private var client: CloudWatchClient = null
+  private var client: Option[CloudWatchClient] = None
 
   private def getCloudWatchClient: CloudWatchClient = {
-    if (client != null) return client
-    val builder = CloudWatchClient.builder
-    configureEndPoint(builder)
-    client = builder.build
-    client
+    client match {
+      case Some(client) => client
+      case None =>
+        val builder = CloudWatchClient.builder
+        configureEndPoint(builder)
+        client = Option(builder.build)
+        client.get
+    }
   }
 
   def createMetric(dimensionName: String, dimensionValue: String, metricName: String,
