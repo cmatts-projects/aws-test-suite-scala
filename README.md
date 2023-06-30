@@ -60,6 +60,15 @@ Features:
 * Creation of a parameter
 * Reading a parameter
 
-## Coming soon... SQS
+## SQS
+
+The Sqs samples demonstrate how to create queues and send and receive messages.
+
+Features:
+* Creation of a queue
+* Sending messages to a queue
+* Receiving messages from a queue
+* S3 support for large messages
+* Queue purging
 
 ## Coming soon... Lambda
