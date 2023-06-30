@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Paths
 
 import co.cmatts.localstack.LocalStackEnvironment.setupLocalStackEnvironment
-import co.cmatts.s3.S3.{resetS3Client, _}
+import co.cmatts.s3.S3._
 import com.dimafeng.testcontainers.LocalStackV2Container
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import org.scalatest.BeforeAndAfter

@@ -13,6 +13,7 @@
     <scala.compat.version>2.13</scala.compat.version>
     <spec2.version>4.20.0</spec2.version>
     <aws.version2>2.20.79</aws.version2>
+    <aws.extended.client.version>2.0.3</aws.extended.client.version>
   </properties>
 
   <dependencies>
@@ -63,6 +64,12 @@
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>sqs</artifactId>
       <version>${aws.version2}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+      <version>${aws.extended.client.version}</version>
     </dependency>
 
     <!-- Test -->
