@@ -10,6 +10,9 @@ import org.scalatest.funspec.AnyFunSpec
 import org.testcontainers.containers.localstack.LocalStackContainer.Service
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class SqsSpec extends AnyFunSpec with TestContainerForAll with BeforeAndAfter {
   private val TEST_QUEUE_BUCKET = "my-queue-bucket"
@@ -33,12 +36,13 @@ class SqsSpec extends AnyFunSpec with TestContainerForAll with BeforeAndAfter {
 
   def retrieveMessagesFromSqs(numberOfRecords: Int): List[String] = {
     val messages: ListBuffer[String] = ListBuffer[String]()
-    var tries = 0
-    while (messages.size < numberOfRecords && tries < 50) {
-      messages.addAll(readFromQueue(TEST_QUEUE))
-      Thread.sleep(100)
-      tries += 1
-    }
+    val readMessages: Future[Unit] = Future(
+      while (messages.size < numberOfRecords) {
+        messages.addAll(readFromQueue(TEST_QUEUE))
+        Thread.sleep(100)
+      }
+    )
+    Await.result(readMessages, 5.seconds)
     messages.toList
   }
 
