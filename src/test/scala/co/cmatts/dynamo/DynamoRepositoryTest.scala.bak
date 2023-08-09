@@ -1,0 +1,134 @@
+package co.cmatts.aws.dynamo
+
+import co.cmatts.aws.cloudformation.CloudFormation
+import co.cmatts.aws.dynamo.model.Fact
+import co.cmatts.aws.dynamo.model.Person
+import co.cmatts.aws.dynamo.model.Siblings
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.testcontainers.containers.localstack.LocalStackContainer
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.utility.DockerImageName
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables
+import uk.org.webcompere.systemstubs.jupiter.SystemStub
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
+import uk.org.webcompere.systemstubs.properties.SystemProperties
+import java.util
+import java.util.Optional
+import java.util.concurrent.CompletionException
+import co.cmatts.aws.v2.dynamo.DynamoDbTestDataFactory._
+import java.util.Arrays.asList
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.testcontainers.containers.localstack.LocalStackContainer.Service.CLOUDFORMATION
+import org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB
+
+@Testcontainers @ExtendWith(Array(classOf[SystemStubsExtension])) object DynamoRepositoryTest {
+  private val IMAGE =
+    DockerImageName.parse("localstack/localstack").withTag("2.1.0")
+  private val DYNAMO_TABLES_YML = "dynamo-tables.yml"
+  @SystemStub private val environmentVariables = null
+  @SystemStub private val systemProperties = null
+  @Container private val LOCAL_STACK_CONTAINER =
+    new LocalStackContainer(IMAGE).withServices(DYNAMODB, CLOUDFORMATION)
+  private var repo = null
+  @BeforeAll @throws[Exception]
+  private[dynamo] def beforeAll(): Unit = {
+    environmentVariables
+      .set("AWS_ACCESS_KEY_ID", LOCAL_STACK_CONTAINER.getAccessKey)
+      .set("AWS_SECRET_ACCESS_KEY", LOCAL_STACK_CONTAINER.getSecretKey)
+      .set(
+        "LOCAL_STACK_ENDPOINT",
+        LOCAL_STACK_CONTAINER.getEndpointOverride(null).toString
+      )
+      .set("AWS_REGION", LOCAL_STACK_CONTAINER.getRegion)
+    systemProperties.set(
+      "software.amazon.awssdk.http.service.impl",
+      "software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService"
+    )
+    CloudFormation.createStack("DynamoDB", DYNAMO_TABLES_YML)
+    repo = new DynamoRepository
+    repo.load(peopleDataList, factDataList)
+  }
+}
+@Testcontainers @ExtendWith(Array(classOf[SystemStubsExtension])) class DynamoRepositoryTest {
+  @Test private[dynamo] def shouldFindPerson(): Unit = {
+    val result = DynamoRepositoryTest.repo.findPerson(1)
+    assertThat(result.isPresent).isTrue
+    val p = result.get
+    assertThat(p.getId).isEqualTo(1)
+    assertThat(p.getYearOfBirth).isEqualTo(1900)
+    assertThat(p.getYearOfDeath).isEqualTo(1990)
+    assertThat(p.getFatherId).isEqualTo(16)
+    assertThat(p.getMotherId).isEqualTo(17)
+    assertThat(p.toString).isEqualTo(person(1).toString)
+  }
+  @Test private[dynamo] def shouldNotFindPerson(): Unit = {
+    val result = DynamoRepositoryTest.repo.findPerson(99)
+    assertThat(result.isPresent).isFalse
+  }
+  @Test private[dynamo] def shouldFindFactsForPerson(): Unit = {
+    val facts = DynamoRepositoryTest.repo.findFacts(1)
+    assertThat(facts).hasSize(3)
+    assertThat(facts).containsExactlyInAnyOrder(fact(1), fact(2), fact(3))
+    assertThat(
+      facts.stream.filter((f: Fact) => f.getId eq 2).findAny.get.toString
+    ).isEqualTo(fact(2).toString)
+  }
+  @Test private[dynamo] def shouldNotFindFacts(): Unit = {
+    val facts = DynamoRepositoryTest.repo.findFacts(99)
+    assertThat(facts).hasSize(0)
+  }
+  @Test private[dynamo] def shouldFindAllSiblingsGroupedByParentsAndInOrderOfYearOfBirth()
+  : Unit = {
+    val siblings = DynamoRepositoryTest.repo.findSiblings(1)
+    assertThat(siblings).isEqualTo(PERSON_1_SIBLINGS)
+  }
+  @Test private[dynamo] def shouldFindSiblingsWithNoMotherAssumingTheSameMother()
+  : Unit = {
+    val siblings = DynamoRepositoryTest.repo.findSiblings(3)
+    assertThat(siblings).isEqualTo(PERSON_3_SIBLINGS)
+  }
+  @Test private[dynamo] def shouldFindSiblingsWithNoFatherAssumingTheSameFather()
+  : Unit = {
+    val siblings = DynamoRepositoryTest.repo.findSiblings(8)
+    assertThat(siblings).isEqualTo(PERSON_8_SIBLINGS)
+  }
+  @Test private[dynamo] def shouldFindAllPeopleSorted(): Unit = {
+    val people = DynamoRepositoryTest.repo.findPeople
+    assertThat(people).hasSize(peopleCount)
+    assertThat(people.get(0).getName).isEqualTo("First Person")
+    assertThat(people.get(1).getName).isEqualTo("Mr Test")
+  }
+  @Test private[dynamo] def shouldUpdateEntities(): Unit = {
+    val person = DynamoRepositoryTest.repo.findPerson(21).get
+    person.setYearOfBirth(1799)
+    person.setYearOfDeath(1888)
+    val fact = DynamoRepositoryTest.repo.findFacts(21).get(0)
+    fact.setImage("Updated")
+    fact.setDescription("A changed description")
+    DynamoRepositoryTest.repo.updateEntities(asList(person, fact))
+    val updatedPerson = DynamoRepositoryTest.repo.findPerson(21).get
+    val updatedFact = DynamoRepositoryTest.repo.findFacts(21).get(0)
+    assertThat(updatedPerson.toString).isEqualTo(person.toString)
+    assertThat(updatedFact.toString).isEqualTo(fact.toString)
+  }
+  @Test private[dynamo] def shouldHandleOptimisticLockingOfEntities(): Unit = {
+    val person = DynamoRepositoryTest.repo.findPerson(21).get
+    person.setYearOfBirth(1699)
+    val fact = DynamoRepositoryTest.repo.findFacts(21).get(0)
+    fact.setDescription("This has an older version")
+    fact.setVersion(fact.getVersion - 1)
+    assertThatThrownBy(() =>
+      DynamoRepositoryTest.repo.updateEntities(asList(person, fact))
+    ).isInstanceOf(classOf[CompletionException])
+      .hasCauseInstanceOf(classOf[TransactionCanceledException])
+    val updatedPerson = DynamoRepositoryTest.repo.findPerson(21).get
+    val updatedFact = DynamoRepositoryTest.repo.findFacts(21).get(0)
+    assertThat(updatedPerson.toString).isNotEqualTo(person.toString)
+    assertThat(updatedFact.toString).isNotEqualTo(fact.toString)
+  }
+}
