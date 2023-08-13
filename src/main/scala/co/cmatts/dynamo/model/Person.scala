@@ -35,13 +35,13 @@ case class Person(
 }
 
 case class PersonBuilder(
-  id: Long = null,
-  name: String = null,
-  yearOfBirth: Integer = null,
-  yearOfDeath: Integer = null,
-  fatherId: Integer = null,
-  motherId: Integer = null,
-  version: Long = null
+  id: Long = -1,
+  name: String = "",
+  yearOfBirth: Integer = -1,
+  yearOfDeath: Integer = -1,
+  fatherId: Integer = -1,
+  motherId: Integer = -1,
+  version: Long = -1
 ) {
 
   def id(id: Long): PersonBuilder = {

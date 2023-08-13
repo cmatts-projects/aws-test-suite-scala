@@ -23,26 +23,16 @@ case class Fact(
 ) extends DynamoDbMappedBean {
 
   override def tableName(): String = "facts"
-
-  override def equals(other: Any): Boolean = {
-    other match {
-      case fact: Fact =>
-        this.id == fact.id
-      case _ => false
-    }
-  }
-
-  override def hashCode(): Int = id.hashCode
 }
 
 case class FactBuilder(
-  id: Long = null,
-  personId: Integer = null,
-  year: Integer = null,
-  image: String = null,
-  source: String = null,
-  description: String = null,
-  version: Long = null
+  id: Long = -1,
+  personId: Integer = -1,
+  year: Integer = -1,
+  image: String = "",
+  source: String = "",
+  description: String = "",
+  version: Long = -1
 ) {
   def id(id: Long): FactBuilder = {
     copy(id = id)

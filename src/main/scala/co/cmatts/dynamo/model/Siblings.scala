@@ -15,40 +15,13 @@ case class Siblings(
 
     def this(person: Person, allSiblings: Seq[Person], parents: Seq[Person]) = {
         this (
-            extractFullSiblings(person, allSiblings),
-            extractStepSiblingsByFather(person, allSiblings),
-            extractStepSiblingsByMother(person, allSiblings),
+            SiblingsHelper.extractFullSiblings(person, allSiblings),
+            SiblingsHelper.extractStepSiblingsByFather(person, allSiblings),
+            SiblingsHelper.extractStepSiblingsByMother(person, allSiblings),
             parents
         )
     }
 
-    private def extractStepSiblingsByMother(person: Person, allSiblings: Seq[Person]): Seq[Person] = {
-        allSiblings.filter(s => s.getFatherId == person.getFatherId && s.getMotherId == person.getMotherId)
-                .sortWith((a, b) => sortByParentYear(a, b, a.getFatherId, b.getFatherId))
-    }
-
-    private def extractStepSiblingsByFather(person: Person, allSiblings: Seq[Person]): Seq[Person] = {
-        allSiblings.filter(s => s.getFatherId == person.getFatherId && s.getMotherId == person.getMotherId)
-                .sortWith((a, b) => sortByParentYear(a, b, a.getMotherId, b.getMotherId))
-    }
-
-    private def extractFullSiblings(person: Person, allSiblings: Seq[Person]): Seq[Person] = {
-        allSiblings.filter(s => s.getFatherId == person.getFatherId && s.getMotherId == person.getMotherId)
-                .sortWith((a, b) => a.getYearOfBirth > b.getYearOfBirth ||
-                  (a.getYearOfBirth == b.getYearOfBirth && a.getId > b.getId))
-    }
-
-    private def sortByParentYear(a: Person, b: Person, aParentId: Integer, bParentId: Integer): Boolean = {
-        (
-            aParentId == bParentId &&
-                (b.getYearOfBirth == null ||
-                        (a.getYearOfBirth != null && (a.getYearOfBirth > b.getYearOfBirth ||
-                                (a.getYearOfBirth == b.getYearOfBirth && a.getId > b.getId))))
-            ||
-            aParentId != bParentId &&
-                (aParentId != null && bParentId == null) || (aParentId != null && aParentId > bParentId)
-        )
-    }
 }
 
 case class SiblingsBuilder(
@@ -80,5 +53,35 @@ case class SiblingsBuilder(
         stepByMother = stepByMother,
         parents = parents
       )
+    }
+}
+
+object SiblingsHelper {
+    def extractStepSiblingsByMother(person: Person, allSiblings: Seq[Person]): Seq[Person] = {
+        allSiblings.filter(s => s.getFatherId == person.getFatherId && s.getMotherId == person.getMotherId)
+          .sortWith((a, b) => sortByParentYear(a, b, a.getFatherId, b.getFatherId))
+    }
+
+    def extractStepSiblingsByFather(person: Person, allSiblings: Seq[Person]): Seq[Person] = {
+        allSiblings.filter(s => s.getFatherId == person.getFatherId && s.getMotherId == person.getMotherId)
+          .sortWith((a, b) => sortByParentYear(a, b, a.getMotherId, b.getMotherId))
+    }
+
+    def extractFullSiblings(person: Person, allSiblings: Seq[Person]): Seq[Person] = {
+        allSiblings.filter(s => s.getFatherId == person.getFatherId && s.getMotherId == person.getMotherId)
+          .sortWith((a, b) => a.getYearOfBirth > b.getYearOfBirth ||
+            (a.getYearOfBirth == b.getYearOfBirth && a.getId > b.getId))
+    }
+
+    private def sortByParentYear(a: Person, b: Person, aParentId: Integer, bParentId: Integer): Boolean = {
+        (
+          aParentId == bParentId &&
+            (b.getYearOfBirth == null ||
+              (a.getYearOfBirth != null && (a.getYearOfBirth > b.getYearOfBirth ||
+                (a.getYearOfBirth == b.getYearOfBirth && a.getId > b.getId))))
+            ||
+            aParentId != bParentId &&
+              (aParentId != null && bParentId == null) || (aParentId != null && aParentId > bParentId)
+          )
     }
 }
