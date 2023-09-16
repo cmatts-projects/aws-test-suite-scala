@@ -7,7 +7,7 @@ import scala.annotation.meta.beanGetter
 import scala.beans.BeanProperty
 
 @DynamoDbBean
-case class Person(
+class Person(
     @(DynamoDbPartitionKey @beanGetter)
     @BeanProperty var id: Long,
     @BeanProperty var name: String,
@@ -35,14 +35,18 @@ case class Person(
 }
 
 case class PersonBuilder(
-  id: Long = -1,
-  name: String = "",
-  yearOfBirth: Integer = -1,
-  yearOfDeath: Integer = -1,
-  fatherId: Integer = -1,
-  motherId: Integer = -1,
-  version: Long = -1
+  id: Long,
+  name: String,
+  yearOfBirth: Integer,
+  yearOfDeath: Integer,
+  fatherId: Integer,
+  motherId: Integer,
+  version: Long
 ) {
+
+  def this() = {
+    this(null, null, null, null, null, null, null)
+  }
 
   def id(id: Long): PersonBuilder = {
     copy(id = id)
@@ -73,7 +77,7 @@ case class PersonBuilder(
   }
 
   def build(): Person = {
-    Person(
+    new Person(
       id = id,
       name = name,
       yearOfBirth = yearOfBirth,

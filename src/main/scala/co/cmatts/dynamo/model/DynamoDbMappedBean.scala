@@ -1,6 +1,6 @@
 package co.cmatts.dynamo.model
 
-trait DynamoDbMappedBean {
+abstract class DynamoDbMappedBean() {
   var id: Long
   var version: Long
 

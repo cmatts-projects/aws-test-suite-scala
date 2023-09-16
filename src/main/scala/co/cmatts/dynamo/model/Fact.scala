@@ -9,7 +9,7 @@ import scala.annotation.meta.beanGetter
 import scala.beans.BeanProperty
 
 @DynamoDbBean
-case class Fact(
+class Fact(
     @(DynamoDbPartitionKey @beanGetter)
     @BeanProperty var id: Long,
     @DynamoDbSecondaryPartitionKey(indexNames = Array("personIndex"))
@@ -26,14 +26,19 @@ case class Fact(
 }
 
 case class FactBuilder(
-  id: Long = -1,
-  personId: Integer = -1,
-  year: Integer = -1,
-  image: String = "",
-  source: String = "",
-  description: String = "",
-  version: Long = -1
+  id: Long,
+  personId: Integer,
+  year: Integer,
+  image: String,
+  source: String,
+  description: String,
+  version: Long
 ) {
+
+  def this() = {
+    this(null, null, null, null, null, null, null)
+  }
+
   def id(id: Long): FactBuilder = {
     copy(id = id)
   }
@@ -63,7 +68,7 @@ case class FactBuilder(
   }
 
   def build(): Fact = {
-    Fact(
+    new Fact(
       id = id,
       personId = personId,
       year = year,

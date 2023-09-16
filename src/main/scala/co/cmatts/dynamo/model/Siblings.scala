@@ -13,6 +13,10 @@ case class Siblings(
     var parents: Seq[Person]
 ) {
 
+    def this() = {
+        this(Seq.empty, Seq.empty, Seq.empty, Seq.empty)
+    }
+
     def this(person: Person, allSiblings: Seq[Person], parents: Seq[Person]) = {
         this (
             SiblingsHelper.extractFullSiblings(person, allSiblings),
